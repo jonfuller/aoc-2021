@@ -8,8 +8,8 @@ PartB();
 
 void PartA()
 {
-    Console.WriteLine(CountIncreases(depthsSample));
-    Console.WriteLine(CountIncreases(depthsActual));
+    Console.WriteLine(CountWindowIncreases(1, depthsSample));
+    Console.WriteLine(CountWindowIncreases(1, depthsActual));
 }
 
 void PartB()
@@ -17,10 +17,6 @@ void PartB()
     Console.WriteLine(CountWindowIncreases(3, depthsSample));
     Console.WriteLine(CountWindowIncreases(3, depthsActual));
 }
-
-static int CountIncreases(IEnumerable<int> depths) => depths
-    .Pairwise((a, b) => b > a)
-    .Count(x => x);
 
 static int CountWindowIncreases(int windowSize, IEnumerable<int> depths) => depths
     .Window(windowSize)
