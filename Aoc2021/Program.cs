@@ -4,6 +4,6 @@ global using CliFx.Attributes;
 global using CliFx.Infrastructure;
 
 await new CliApplicationBuilder()
-       .AddCommandsFromThisAssembly()
-       .Build()
-       .RunAsync();
+    .AddCommandsFromThisAssembly()
+    .Build()
+    .RunAsync();

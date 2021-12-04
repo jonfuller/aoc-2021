@@ -7,6 +7,7 @@ public class Day03 : ICommand
     {
         PartA("input/03_sample");
         PartA("input/03");
+        PartB("input/03_sample");
 
         void PartA(string filename)
         {
@@ -15,16 +16,44 @@ public class Day03 : ICommand
 
             console.Output.WriteLine(gamma * epsilon);
         }
+
+        void PartB(string filename)
+        {
+            var binaries = File.ReadAllLines(filename).Select(ParseLine).ToList();
+
+            var x = OxygenRating(binaries, console);
+
+            console.Output.WriteLine(x);
+        }
     }
 
-    private static (int gamma, int epsilon) DetermineFactors(List<List<int>> digits)
+    private int OxygenRating(List<List<int>> numbers, IConsole console)
+    {
+        var numDigits = numbers.First().Count;
+
+        var numbersLeft = numbers;
+        for (var i=0; i<numDigits || numbersLeft.Count > 1; i++)
+        {
+            numbersLeft = DetermineValidOxygenNumbersForDigit(numbersLeft, i);
+        }
+
+        return BinaryStringToInt(IntSeqToString(numbersLeft.Single()));
+    }
+    private static List<List<int>> DetermineValidOxygenNumbersForDigit(List<List<int>> numbers, int digit)
+    {
+        var mostCommon = MostCommonDigit(numbers, digit);
+
+        return numbers.Where(x => x[digit] == mostCommon).ToList();
+    }
+
+    private static (int gamma, int epsilon) DetermineFactors(List<List<int>> numbers)
     {
         var gamma = new List<int>();
         var epsilon = new List<int>();
 
-        for (int i=0; i<digits.First().Count; i++)
+        for (int i=0; i<numbers.First().Count; i++)
         {
-            if (MostCommon(digits, i) == 0)
+            if (MostCommonDigit(numbers, i) == 0)
             {
                 gamma.Add(0);
                 epsilon.Add(1);
@@ -39,10 +68,16 @@ public class Day03 : ICommand
         return (BinaryStringToInt(IntSeqToString(gamma)), BinaryStringToInt(IntSeqToString(epsilon)));
     }
 
-    private static int MostCommon(List<List<int>> digits, int digitNumber) =>
-        digits.Select(b => b[digitNumber]).Sum() < digits.Count/2
-            ? 0
-            : 1;
+    private static int MostCommonDigit(List<List<int>> numbers, int digitNumber)
+    {
+        var allOfDigit = numbers.Select(number => number[digitNumber]).ToList();
+        var zeroes = allOfDigit.Count(d => d == 0);
+        var ones = allOfDigit.Count(d => d == 1);
+        
+        if (zeroes == ones) return 1;
+        if (zeroes > ones) return 0;
+        return 1;
+    }
     private static int BinaryStringToInt(string binaryString) => Convert.ToInt32(binaryString, 2);
     private static string IntSeqToString(IEnumerable<int> seq) => string.Join("", seq.Select(i => i.ToString()).ToArray());
     private static List<int> ParseLine(string line) => line.Select(c => int.Parse(new string(c, 1))).ToList();
