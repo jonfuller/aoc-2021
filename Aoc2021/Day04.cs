@@ -7,7 +7,20 @@ public class Day04 : ICommand
     {
         var (calls, boards) = ReadInputs("input/04_sample");
 
-        console.Output.WriteLine(boards.First());
+        var bingo = FindFirstBingo(calls, boards);
+        console.Output.WriteLine(bingo);
+    }
+
+    static BingoBoard FindFirstBingo(IEnumerable<int> calls, IEnumerable<BingoBoard> boards)
+    {
+        foreach (var call in calls)
+        {
+            boards = boards.Select(b => b.Play(call));
+            var bingos = boards.Where(b => b.HasBingo);
+            if (bingos.Any())
+                return bingos.First();
+        }
+        throw new Exception("no bingo found");
     }
 
     static (IEnumerable<int> calls, IEnumerable<BingoBoard> boards) ReadInputs(string filename)
@@ -32,14 +45,35 @@ public class Day04 : ICommand
 
     record BingoBoard(IEnumerable<BingoCell> Cells, IEnumerable<int> Calls)
     {
-        bool HasBingo => false;
+        public BingoBoard Play(int callNumber)
+        {
+            var otherCells = Cells.Where(c => c.Value != callNumber);
+            var calledCells = Cells.Where(c => c.Value == callNumber);
+
+            return this with {
+                Calls = Calls.Append(element: callNumber),
+                Cells = otherCells.Concat(calledCells.Select(c => c with {Marked = true}))
+            };
+        }
+        public IEnumerable<BingoCell> AllUnmarked => Cells.Where(c => !c.Marked);
+        public bool HasBingo
+        {
+            get
+            {
+                var cols = Cells.GroupBy(c => c.Column);
+                var rows = Cells.GroupBy(c => c.Row);
+
+                return cols.Concat(rows).Any(grp => grp.All(c => c.Marked));
+            }
+        }
+
         public override string ToString()
         {
             var lines = Cells
                 .OrderBy(c => c.Row)
                 .ThenBy(c => c.Column)
                 .GroupBy(c => c.Row)
-                .Select(rowGrp => string.Join(",", rowGrp.Select(c => c.Value.ToString())));
+                .Select(rowGrp => string.Join(",", rowGrp.Select(c => c.Marked ? " " : c.Value.ToString())));
 
             return string.Join(Environment.NewLine, lines);
         }
