@@ -5,16 +5,18 @@ public class Day04 : ICommand
 {
     public async ValueTask ExecuteAsync(IConsole console)
     {
-        PartA("input/04_sample");
-        PartA("input/04");
+        PlayBingo("input/04_sample");
+        PlayBingo("input/04");
 
-        void PartA(string filename)
+        void PlayBingo(string filename)
         {
             var (calls, boards) = ReadInputs(filename);
 
-            var bingo = FindFirstBingo(calls.ToList(), boards.ToList(), console);
-            
-            console.Output.WriteLine(bingo.Score);
+            var first = FindFirstBingo(calls.ToList(), boards.ToList(), console);
+            var last = FindLastBingoBoard(calls.ToList(), boards.ToList(), console);
+
+            console.Output.WriteLine($"First - {first.Score}");
+            console.Output.WriteLine($"Last - {last.Score}");
         }
     }
 
@@ -30,11 +32,31 @@ public class Day04 : ICommand
         throw new Exception("no bingo found");
     }
 
-    static (IEnumerable<int> calls, IEnumerable<BingoBoard> boards) ReadInputs(string filename)
+    static BingoBoard FindLastBingoBoard(IEnumerable<int> calls, List<BingoBoard> boards, IConsole console)
+    {
+        var initialBoardCount = boards.Count();
+        var bingoed = new List<BingoBoard>();
+
+        foreach (var call in calls)
+        {
+            var played = boards.Select(b => b.Play(call)).ToList();
+
+            bingoed.AddRange(played.Where(b => b.HasBingo));
+
+            boards = played.Where(b => !b.HasBingo).ToList();
+
+
+            if (bingoed.Count == initialBoardCount)
+                return bingoed.Last();
+        }
+        throw new Exception("no bingo found");
+    }
+
+    static (List<int> calls, List<BingoBoard> boards) ReadInputs(string filename)
     {
         var lines = File.ReadAllLines(filename);
 
-        return (ParseCallsLine(lines[0]), ParseBoards(lines.Skip(1)));
+        return (ParseCallsLine(lines[0]).ToList(), ParseBoards(lines.Skip(1)).ToList());
 
         static IEnumerable<int> ParseCallsLine(string callsLine) => callsLine.Split(",").Select(int.Parse);
 
