@@ -8,6 +8,7 @@ public class Day03 : ICommand
         PartA("input/03_sample");
         PartA("input/03");
         PartB("input/03_sample");
+        PartB("input/03");
 
         void PartA(string filename)
         {
@@ -21,18 +22,32 @@ public class Day03 : ICommand
         {
             var binaries = File.ReadAllLines(filename).Select(ParseLine).ToList();
 
-            var x = OxygenRating(binaries, console);
+            var ratings = DetermineRatings(binaries);
 
-            console.Output.WriteLine(x);
+            console.Output.WriteLine(ratings.co2Rating * ratings.oxygenRating);
         }
     }
 
-    private int OxygenRating(List<List<int>> numbers, IConsole console)
+    static (int oxygenRating, int co2Rating) DetermineRatings(List<List<int>> numbers) =>
+        (OxygenRating(numbers), CO2ScrubberRating(numbers));
+    static int CO2ScrubberRating(List<List<int>> numbers)
     {
         var numDigits = numbers.First().Count;
 
         var numbersLeft = numbers;
-        for (var i=0; i<numDigits || numbersLeft.Count > 1; i++)
+        for (var i=0; i<numDigits && numbersLeft.Count > 1; i++)
+        {
+            numbersLeft = DetermineValidCO2NumbersForDigit(numbersLeft, i);
+        }
+
+        return BinaryStringToInt(IntSeqToString(numbersLeft.Single()));
+    }
+    static int OxygenRating(List<List<int>> numbers)
+    {
+        var numDigits = numbers.First().Count;
+
+        var numbersLeft = numbers;
+        for (var i=0; i<numDigits && numbersLeft.Count > 1; i++)
         {
             numbersLeft = DetermineValidOxygenNumbersForDigit(numbersLeft, i);
         }
@@ -44,6 +59,12 @@ public class Day03 : ICommand
         var mostCommon = MostCommonDigit(numbers, digit);
 
         return numbers.Where(x => x[digit] == mostCommon).ToList();
+    }
+    private static List<List<int>> DetermineValidCO2NumbersForDigit(List<List<int>> numbers, int digit)
+    {
+        var leastCommon = Math.Abs(MostCommonDigit(numbers, digit) - 1);
+
+        return numbers.Where(x => x[digit] == leastCommon).ToList();
     }
 
     private static (int gamma, int epsilon) DetermineFactors(List<List<int>> numbers)
