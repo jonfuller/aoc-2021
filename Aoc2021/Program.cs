@@ -6,4 +6,4 @@ global using CliFx.Infrastructure;
 await new CliApplicationBuilder()
     .AddCommandsFromThisAssembly()
     .Build()
-    .RunAsync();
+    .RunAsync(new string[] {$"day-{DateTime.Today:dd}"});
