@@ -5,18 +5,25 @@ public class Day04 : ICommand
 {
     public async ValueTask ExecuteAsync(IConsole console)
     {
-        var (calls, boards) = ReadInputs("input/04_sample");
+        PartA("input/04_sample");
+        PartA("input/04");
 
-        var bingo = FindFirstBingo(calls, boards);
-        console.Output.WriteLine(bingo);
+        void PartA(string filename)
+        {
+            var (calls, boards) = ReadInputs(filename);
+
+            var bingo = FindFirstBingo(calls.ToList(), boards.ToList(), console);
+            
+            console.Output.WriteLine(bingo.Score);
+        }
     }
 
-    static BingoBoard FindFirstBingo(IEnumerable<int> calls, IEnumerable<BingoBoard> boards)
+    static BingoBoard FindFirstBingo(IEnumerable<int> calls, IEnumerable<BingoBoard> boards, IConsole console)
     {
         foreach (var call in calls)
         {
-            boards = boards.Select(b => b.Play(call));
-            var bingos = boards.Where(b => b.HasBingo);
+            boards = boards.Select(b => b.Play(call)).ToList();
+            var bingos = boards.Where(b => b.HasBingo).ToList();
             if (bingos.Any())
                 return bingos.First();
         }
@@ -51,11 +58,12 @@ public class Day04 : ICommand
             var calledCells = Cells.Where(c => c.Value == callNumber);
 
             return this with {
-                Calls = Calls.Append(element: callNumber),
-                Cells = otherCells.Concat(calledCells.Select(c => c with {Marked = true}))
+                Calls = Calls.Append(element: callNumber).ToList(),
+                Cells = otherCells.Concat(calledCells.Select(c => c with { Marked = true })).ToList()
             };
         }
         public IEnumerable<BingoCell> AllUnmarked => Cells.Where(c => !c.Marked);
+        public int Score => AllUnmarked.Sum(c => c.Value) * Calls.Last();
         public bool HasBingo
         {
             get
