@@ -28,6 +28,8 @@ public class Day07 : ICommand
     static int TravelA(int currentDepth, int destinationDepth) => Math.Abs(currentDepth - destinationDepth);
     static int TravelB(int currentDepth, int destinationDepth)
     {
-        return 0;
+        var n = Math.Abs(currentDepth - destinationDepth);
+
+        return ((int)Math.Pow(n, 2) + n) / 2; // Sigma (g, g=1..n)
     }
 }
